@@ -11,22 +11,22 @@ d3.json(queryUrl, function(data) {
 function MarkerColor(depth){
     var color = "";
     if (depth <= 10) {
-        color = "#2AAD27";
+        color = "#a7fb09";
     }
     else if (depth <= 30) {
-        color = "#CAC428";
+        color = "#dcf900";
     }
     else if (depth <= 50) {
-        color = "#FFD326";
+        color = "#f6de1a";
     }
     else if (depth <= 70) {
-        color = "orange";
+        color = "#fbb92e";
     }
     else if (depth <= 90) {
-        color = "#CB8427";
+        color = "#faa35f";
     }
     else {
-        color = "#CB2B3E";
+        color = "#ff5967";
     }
 }
 
@@ -46,8 +46,7 @@ function createFeatures(earthquakeData) {
     pointToLayer: function (feature, locat) {
         var circleMkr = {
         radius: 4*feature.properties.mag,
-        fillColor: MarkerColor(feature.properties.mag),
-        color: "gray",
+        fillColor: MarkerColor(feature.geometry.coordinates[2]),
         weight: 1,
         opacity: 1,
         fillOpacity: 0.75
@@ -71,17 +70,17 @@ function createMap(earthquakes) {
       accessToken: API_KEY
     });
   
-    var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    var grayscale = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
       maxZoom: 18,
-      id: "dark-v10",
+      id: "light-v9",
       accessToken: API_KEY
     });
   
     // Define a baseMaps object to hold our base layers
     var baseMaps = {
       "Street Map": streetmap,
-      "Dark Map": darkmap
+      "Grayscale": grayscale
     };
   
     // Create overlay object to hold our overlay layer
@@ -103,15 +102,19 @@ function createMap(earthquakes) {
     L.control.layers(baseMaps, overlayMaps, {
       collapsed: false
     }).addTo(myMap);
-  }
+  
 
-//             // Add circles to map
-//             L.circle(countries[i].location, {
-//                 fillOpacity: 0.75,
-//                 fillColor: color,
-//             // Adjust radius
-//                 radius: features[i].geometry.coordinates[2] * 1500
-//             })
-//         }
-//     }
-// });
+// Add a legend
+    var legend = L.control({ position: "bottomright" });
+    legend.onAdd = function() {
+        var div = L.DomUtil.create("div", "legend");
+        depth = [-10, 10, 30, 50, 70, 90]
+        labels = []
+        for (var i = 0; i < depth.length; i ++) {
+            labels.push('<li style="background-color:' + MarkerColor(depth[i] + 1) + '"> <span>' + depth[i] + (depth[i + 1] ? '&ndash;' + depth[i + 1] + '' : '+') + '</span></li>');
+    }
+    div.innerHTML += "<ul>" + labels.join("") + "</ul>";
+    return div;
+};
+    legend.addTo(myMap);
+}
