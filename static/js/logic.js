@@ -7,27 +7,14 @@ d3.json(queryUrl, function(data) {
   createFeatures(data.features);
 });
 
-// Set marker color. Reference: https://github.com/pointhi/leaflet-color-markers
+// Set marker color. Reference: https://www.color-hex.com/
 function MarkerColor(depth){
-    var color = "";
-    if (depth <= 10) {
-        color = "#a7fb09";
-    }
-    else if (depth <= 30) {
-        color = "#dcf900";
-    }
-    else if (depth <= 50) {
-        color = "#f6de1a";
-    }
-    else if (depth <= 70) {
-        color = "#fbb92e";
-    }
-    else if (depth <= 90) {
-        color = "#faa35f";
-    }
-    else {
-        color = "#ff5967";
-    }
+    return depth > 90 ? '#ff5967': 
+            depth > 70 ? '#faa35f': 
+	          depth > 50 ? '#fbb92e': 
+	          depth > 30 ? '#f6de1a' :
+	          depth > 10 ? '#dcf900':
+	                      '#74af06';
 }
 
 function createFeatures(earthquakeData) {
@@ -47,7 +34,7 @@ function createFeatures(earthquakeData) {
         var circleMkr = {
         radius: 4*feature.properties.mag,
         fillColor: MarkerColor(feature.geometry.coordinates[2]),
-        weight: 1,
+        weight: 0.25,
         opacity: 1,
         fillOpacity: 0.75
         };
@@ -73,7 +60,7 @@ function createMap(earthquakes) {
     var grayscale = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
       maxZoom: 18,
-      id: "light-v9",
+      id: "light-v10",
       accessToken: API_KEY
     });
   
@@ -92,7 +79,7 @@ function createMap(earthquakes) {
     // Creating map object
     var myMap = L.map("mapid", {
         center: [37.0902, -95.7129],
-        zoom: 5,
+        zoom: 3,
         layers: [streetmap, earthquakes]
     });
   
