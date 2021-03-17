@@ -1,7 +1,9 @@
 //JSON Url
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+var tectonic = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json";
 
-// Perform a GET request to the query URL
+
+// Perform a GET request on the earthquake data
 d3.json(queryUrl, function(data) {
   // Once we get a response, send the data.features object to the createFeatures function
   createFeatures(data.features);
@@ -41,19 +43,29 @@ function createFeatures(earthquakeData) {
         return L.circleMarker(locat, circleMkr);
         }
     });
-  // Sending earthquakes layer to the createMap function
-  createMap(earthquakes);
+// Retrieve Tectonic Plates GeoJSON Data using D3
+d3.json(tectonic, function(response) {
+
+  var tecFeatures = response.features;
+
+  var TPlates = L.geoJSON(tecFeatures, {
+      color: "orange",
+      weight: 2
+  });
+  // Sending earthquakes and TPlates layer to the createMap function
+  createMap(earthquakes, TPlates);
+  })
 }
 
-function createMap(earthquakes) {
+function createMap(earthquakes, tectonicPlates) {
 
-    // Define streetmap and darkmap layers
-    var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    // Define satellite, grayscale and outdoor layers
+    var satellite = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
       tileSize: 512,
       maxZoom: 18,
       zoomOffset: -1,
-      id: "mapbox/streets-v11",
+      id: "mapbox/satellite-v9",
       accessToken: API_KEY
     });
   
@@ -63,16 +75,25 @@ function createMap(earthquakes) {
       id: "light-v10",
       accessToken: API_KEY
     });
+
+    var outdoors = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/outdoors-v9/tiles/256/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"http://mapbox.com\">Mapbox</a>",
+        maxZoom: 18,
+        id: "mapbox/outdoors-v11",
+        accessToken: API_KEY
+    });
   
     // Define a baseMaps object to hold our base layers
     var baseMaps = {
-      "Street Map": streetmap,
-      "Grayscale": grayscale
+      "Satellite": satellite,
+      "Grayscale": grayscale,
+      "Outdoor": outdoors
     };
   
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
-      "Earthquakes": earthquakes
+      "Earthquakes": earthquakes,
+      "Tectonic Plates": tectonicPlates
     };
   
     // Create our map, giving it the streetmap and earthquakes layers to display on load
@@ -80,7 +101,7 @@ function createMap(earthquakes) {
     var myMap = L.map("mapid", {
         center: [37.0902, -95.7129],
         zoom: 3,
-        layers: [streetmap, earthquakes]
+        layers: [satellite, earthquakes, tectonicPlates]
     });
   
     // Create a layer control
